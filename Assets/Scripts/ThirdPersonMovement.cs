@@ -8,6 +8,7 @@ public class ThirdPersonMovement : MonoBehaviour
     public CharacterController controller;
     public Transform cam;
     public Joystick joystick;
+    public Joystick camStick;
     public PhotonView pView;
 
     private Vector3 velocity;
@@ -15,6 +16,9 @@ public class ThirdPersonMovement : MonoBehaviour
     public float speed = 6f;
     public float turnSmoothTime = 0.1f;
     float turnSmoothVelocity;
+
+    float CameraAngle;
+    float CameraAngleSpeed = 2f;
 
     [SerializeField] private float gravity;
 
@@ -25,6 +29,7 @@ public class ThirdPersonMovement : MonoBehaviour
         if (pView.IsMine)
         {
             Move();
+            CameraControls();
         }
     }
 
@@ -51,10 +56,34 @@ public class ThirdPersonMovement : MonoBehaviour
 
         }
 
+        cam.position = new Vector3(GameObject.FindGameObjectsWithTag("Player")[0].transform.position.x, GameObject.FindGameObjectsWithTag("Player")[0].transform.position.y + 2, GameObject.FindGameObjectsWithTag("Player")[0].transform.position.z - 10);
+
         //Calculate Gravity
         velocity.y += gravity * Time.deltaTime;
         //Apply gravity
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    public void CameraControls()
+    {
+        CameraAngle += camStick.Horizontal * CameraAngleSpeed;
+
+        cam.position = transform.position + Quaternion.AngleAxis(CameraAngle, Vector3.up) * new Vector3(0, 3.54f, -9.4f);
+        cam.rotation = Quaternion.LookRotation(transform.position + Vector3.up * 2f - cam.position, Vector3.up);
+    }
+
+    public void SetJoysticks(GameObject camera)
+    {
+        Joystick[] tempJoystickList = camera.GetComponentsInChildren<Joystick>();
+        foreach (Joystick temp in tempJoystickList)
+        {
+            if (temp.tag == "Joystick Movement")
+                joystick = temp;
+            else if (temp.tag == "Joystick Camera")
+                camStick = temp;
+        }
+
+        cam = camera.transform;
     }
 }
 
